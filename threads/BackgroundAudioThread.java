@@ -12,7 +12,7 @@ public class BackgroundAudioThread extends Thread {
     public void run() {
         while(true) {
             try {
-                Thread.sleep(AudioHelpers.playSound(getClass(), "backgroundsound.wav", 0.3));
+                Thread.sleep(AudioHelpers.playSound(getClass(), "backgroundsound.wav", 0.3) / 1000);
             } catch(Exception e){
                 e.printStackTrace();
             }

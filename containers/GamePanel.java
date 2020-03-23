@@ -1,5 +1,6 @@
 package containers;
 
+import threads.TimeThread;
 import containers.status.StatusPanel;
 import containers.status.DifficultyPanel;
 import threads.RenderThread;
@@ -41,6 +42,7 @@ public class GamePanel extends JPanel {
     private StatusPanel statusPanel;
     
     private RenderThread renderThread;
+    private TimeThread timeThread;
     
     private EndingThread endingThread = null;
     
@@ -184,6 +186,7 @@ public class GamePanel extends JPanel {
         this.statusPanel = statusPanel;
         setPreferredSize(new Dimension(Shared.blockSize*Shared.X_SIZE, Shared.blockSize*Shared.Y_SIZE));
         this.renderThread = new RenderThread(this);
+        this.timeThread = new TimeThread(this);
         this.figures.add(createRandomFigure());
         this.figures.add(createRandomFigure());
         
@@ -214,6 +217,10 @@ public class GamePanel extends JPanel {
             
             if(Figure.collidesWithBlocks(Shared.getFixBlocks(), Shared.getMovingBlocks())) {
                 Shared.setGameOver(true);
+                statusPanel.getScorePanel().reset();
+                statusPanel.getDifficultyPanel().reset();
+                timeThread.interrupt();
+                renderThread.interrupt();
             }
         }
         

@@ -2,7 +2,6 @@ package containers.status;
 
 import java.awt.Color;
 import java.awt.Dimension;
-import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -10,7 +9,7 @@ import threads.Shared;
 
 public class ScorePanel extends JPanel {
     
-    private final JLabel textLabel = new JLabel("Erzielte Punkte:", JLabel.CENTER);
+    private final JLabel textLabel = new JLabel("Punkte:", JLabel.CENTER);
     private final JLabel scoreLabel = new JLabel("0", JLabel.CENTER);
     private long score = 0;
     

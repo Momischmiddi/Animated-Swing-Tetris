@@ -29,7 +29,7 @@ public class MainFrame extends JFrame {
         this.gamePanel = new GamePanel(this, statusPanel);
         this.backgroundAudioThread = new BackgroundAudioThread();
         
-        this.setTitle("Tetris");
+        this.setTitle("Swing - Tetris");
         this.setLayout(new BorderLayout());
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setResizable(false);

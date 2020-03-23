@@ -2,8 +2,10 @@ package containers.status;
 
 import figure.Figure;
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.GridLayout;
+import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -24,6 +26,9 @@ public class NextPanelContainer extends JPanel {
         this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
         this.nextBlockLabel.setAlignmentX(JLabel.CENTER_ALIGNMENT);
         this.nextBlockLabel.setFont(Shared.statusFont);
+        
+        setMinimumSize(new Dimension(15 * Shared.blockSize, 25 * Shared.blockSize));
+        setMaximumSize(new Dimension(15 * Shared.blockSize, 25 * Shared.blockSize));
     }
 
     private void fill() {

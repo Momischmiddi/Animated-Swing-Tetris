@@ -23,8 +23,8 @@ public class NextPanel extends JPanel {
     private Figure nextFigure;
     
     public NextPanel() {
-        setMinimumSize(new Dimension(5 * Shared.blockSize, 5 * Shared.blockSize));
-        setMaximumSize(new Dimension(5* Shared.blockSize, 5 * Shared.blockSize));
+        setMinimumSize(new Dimension(15 * Shared.blockSize, 15 * Shared.blockSize));
+        setMaximumSize(new Dimension(15 * Shared.blockSize, 15 * Shared.blockSize));
     }
         
     @Override
@@ -38,20 +38,20 @@ public class NextPanel extends JPanel {
         int yOffset = 0;
         
         if(nextFigure instanceof SquareFigure) {
-            xOffset = -65;
-            yOffset = 40;
+            xOffset = (int) -(Shared.blockSize * 2.407407);
+            yOffset = (int) (Shared.blockSize * 1.48148);
         } else if(nextFigure instanceof TFigure) {
-            xOffset = -55;
-            yOffset = 30;
+            xOffset = (int) -(Shared.blockSize * 2.03703);
+            yOffset = (int) (Shared.blockSize * 1.11111);
         } else if(nextFigure instanceof LFigure) {
-            xOffset = -65;
-            yOffset = 25;
+            xOffset = (int) -(Shared.blockSize * 2.407407);
+            yOffset = (int) (Shared.blockSize * 0.9259);
         } else if(nextFigure instanceof SnakeLeftFigure || nextFigure instanceof SnakeRightFigure) {
-            xOffset = -60;
-            yOffset = 40;
+            xOffset = (int) -(Shared.blockSize * 2.22222);
+            yOffset = (int) (Shared.blockSize * 1.48148);
         } else if(nextFigure instanceof IFigure) {
-            xOffset = -55;
-            yOffset = 15;
+            xOffset = (int) -(Shared.blockSize * 2.03703);
+            yOffset = (int) (Shared.blockSize * 0.55555);
         }
                 
         for(Block block : nextFigure.getBlocks()) {

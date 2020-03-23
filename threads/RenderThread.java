@@ -17,11 +17,13 @@ public class RenderThread extends Thread {
     public void run() {
         System.out.println("Rendering-Thread started.");
         
-        while(!Shared.isGameOver()) {
-            try {
+        try {
+            while(!Shared.isGameOver()) {
                 Thread.sleep(SLEEP_MS / Shared.getSpeed());
                 this.gamePanel.moveDown();
-            } catch(Exception e) {
+            }
+        } catch(InterruptedException e) {
+            if(!Shared.isGameOver()) {
                 e.printStackTrace();
             }
         }
