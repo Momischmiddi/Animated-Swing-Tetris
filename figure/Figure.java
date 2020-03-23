@@ -4,10 +4,7 @@ import threads.Shared;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Stack;
-import java.util.concurrent.ThreadLocalRandom;
 
 public class Figure {
 

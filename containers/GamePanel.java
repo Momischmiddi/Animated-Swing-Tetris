@@ -15,13 +15,17 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Image;
 import java.awt.Point;
 import java.awt.Stroke;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
+import javax.imageio.ImageIO;
 import javax.swing.JPanel;
+import resources.AudioHelpers;
 import threads.EndingThread;
 
 public class GamePanel extends JPanel {
@@ -54,17 +58,8 @@ public class GamePanel extends JPanel {
         Graphics2D g2d = (Graphics2D) grahpics;
         Stroke oldStroke = g2d.getStroke();
         
-        for(int y=0 ; y<20 ; y++) {
-            for(int x=0 ; x<10 ; x++) {
-                g2d.setColor(Color.WHITE);
-                g2d.fillRect(x*40, y*40, 40, 40);
-                
-                g2d.setStroke(new BasicStroke(1));
-                g2d.setColor(Color.LIGHT_GRAY);
-                g2d.drawRect(x*40, y*40, 40, 40);
-                g2d.setStroke(oldStroke);
-            }
-        }
+        drawBackgroundImage(g2d);
+        drawBackgroundGrid(g2d, oldStroke);
         
         if(Shared.isGameOver()) {
             if(endingThread == null) {
@@ -79,13 +74,13 @@ public class GamePanel extends JPanel {
         if(Shared.isGameOver()) {
             List<Point> toRemoveSync = getToRemove();
             for(Point point : toRemoveSync) {
-                g2d.setColor(Color.WHITE);
-                g2d.fillRect(point.x*40, point.y*40, 40, 40);
+                g2d.setColor(new Color(225, 225, 225));
+                g2d.fillRect(point.x* 40, point.y * 40, 40, 40);
                 
                 g2d.setStroke(new BasicStroke(1));
                 g2d.setColor(Color.LIGHT_GRAY);
-                g2d.drawRect(point.x*40, point.y*40, 40, 40);
-                g2d.setStroke(oldStroke);      
+                g2d.drawRect(point.x * 40, point.y * 40, 40, 40);
+                g2d.setStroke(oldStroke);
             }
         }
     }
@@ -95,8 +90,8 @@ public class GamePanel extends JPanel {
         
         switch(keyCode) {
             case UP: repaint = handleRotation(); break;
-            case LEFT: repaint = figures.get(0).shift(Figure.Shift.LEFT); break;
-            case RIGHT: repaint = figures.get(0).shift(Figure.Shift.RIGHT); break;
+            case LEFT: repaint = figures.getFirst().shift(Figure.Shift.LEFT); break;
+            case RIGHT: repaint = figures.getFirst().shift(Figure.Shift.RIGHT); break;
             case SPACE: repaint = handleDrop(Shared.getMovingBlocks()); break;
         }
         
@@ -106,8 +101,8 @@ public class GamePanel extends JPanel {
     }
     
     private boolean handleRotation() {
-        if(!(figures.get(0) instanceof SquareFigure)) {
-            return figures.get(0).rotate();   
+        if(!(figures.getFirst() instanceof SquareFigure)) {
+            return figures.getFirst().rotate();   
         }
         
         return false;
@@ -157,6 +152,13 @@ public class GamePanel extends JPanel {
         sliceDown(rowsToSlice);
         
         statusPanel.getScorePanel().update(rowsToSlice.size());
+        if(rowsToSlice.size() > 0) {
+            try {
+                AudioHelpers.playSound(getClass(), "slice_" + rowsToSlice.size() + ".wav", 1.0);
+            } catch(Exception e) {
+                e.printStackTrace();
+            } 
+        }
     }
     
     private void sliceDown(List<Integer> rowsToSlice) {
@@ -202,7 +204,7 @@ public class GamePanel extends JPanel {
         List<Block> movingBlocks = Shared.getMovingBlocks();
         
         for(Block block : movingBlocks) {
-            int movedY = block.getY()+1;
+            int movedY = block.getY() + 1;
             block.setY(movedY);
         }
         
@@ -300,25 +302,30 @@ public class GamePanel extends JPanel {
     }
 
     private void drawHint(Graphics2D g2d, Stroke oldStroke) {
-        List<Block> hintBlocks = fakeDrop(Shared.getMovingBlocks());
+        List<Block> movingBlocks = Shared.getMovingBlocks();
         
-        for(Block block : hintBlocks) {
-            g2d.setStroke(new BasicStroke(2));
-            g2d.setColor(new Color(1.0f, 1.0f, 1.0f, 0.1f));
-            g2d.drawRect(block.getX(), block.getY(), 40, 40);
-            g2d.setStroke(oldStroke);
-            
-            g2d.setColor(new Color(0.0f, 1.0f, 0.0f, 0.1f));
-            g2d.fillRect(block.getX(), block.getY(), 40, 40);
+        if(movingBlocks.size() > 0) {
+            List<Block> hintBlocks = fakeDrop(movingBlocks);
+        
+            for(Block block : hintBlocks) {
+                g2d.setStroke(new BasicStroke(2));
+                g2d.setColor(new Color(1.0f, 1.0f, 1.0f, 0.1f));
+                g2d.drawRect(block.getX(), block.getY(), 40, 40);
+                g2d.setStroke(oldStroke);
+
+                g2d.setColor(new Color(0.0f, 1.0f, 0.0f, 0.1f));
+                g2d.fillRect(block.getX(), block.getY(), 40, 40);
+            }
         }
     }
-    
+        
     private List<Block> fakeDrop(List<Block> movingBlocks) {  
         List<Block> movedBlocks = new ArrayList<>();
         
         Figure movedFigure = new Figure(movedBlocks);
         
         for(Block block : movingBlocks) {
+
             movedBlocks.add(new Block(block.getX(), block.getY() + 1, block.getR(), block.getG(), block.getB(), block.isCenter()));
         }
         
@@ -334,6 +341,28 @@ public class GamePanel extends JPanel {
             this.figures.remove();
             this.figures.addFirst(movedFigure);
             return fakeDrop(movedBlocks);
+        }
+    }
+
+    private void drawBackgroundGrid(Graphics2D g2d, Stroke oldStroke) {
+        for(int y=0 ; y<20 ; y++) {
+            for(int x=0 ; x<10 ; x++) {
+                g2d.setStroke(new BasicStroke(1));
+                g2d.setColor(Color.LIGHT_GRAY);
+                g2d.drawRect(x*40, y*40, 40, 40);
+                g2d.setStroke(oldStroke);
+            }
+        }
+    }
+
+    private void drawBackgroundImage(Graphics2D g2d) {
+        try {
+            g2d.setColor(new Color(225, 225, 225));
+            g2d.fillRect(0, 0, 10*40, 20*40);
+            Image image = ImageIO.read(getClass().getResource("/resources/name.png"));
+            g2d.drawImage(image, 177, 10, null);
+        } catch (Exception ex) {
+            ex.printStackTrace();
         }
     }
 }
