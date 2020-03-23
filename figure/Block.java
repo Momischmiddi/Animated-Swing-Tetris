@@ -1,6 +1,5 @@
 package figure;
 
-import threads.Shared;
 import java.awt.Color;
 
 public class Block {

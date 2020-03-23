@@ -1,6 +1,9 @@
 package containers;
 
+import containers.status.StatusPanel;
 import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.Toolkit;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.io.IOException;
@@ -20,6 +23,8 @@ public class MainFrame extends JFrame {
     }
 
     private void init() throws IOException {
+        Shared.blockSize = calculateBlockSize();
+        
         this.statusPanel = new StatusPanel(this);
         this.gamePanel = new GamePanel(this, statusPanel);
         this.backgroundAudioThread = new BackgroundAudioThread();
@@ -55,5 +60,12 @@ public class MainFrame extends JFrame {
         Shared.reset();
         statusPanel.restart();
         gamePanel.restart();
+    }
+    
+    private int calculateBlockSize() {        
+        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+        
+        // The game should use the half screen height
+        return screenSize.height / Shared.Y_SIZE / 2;
     }
 }

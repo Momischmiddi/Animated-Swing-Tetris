@@ -1,5 +1,7 @@
 package containers;
 
+import containers.status.StatusPanel;
+import containers.status.DifficultyPanel;
 import threads.RenderThread;
 import threads.Shared;
 import figure.Block;
@@ -81,8 +83,8 @@ public class GamePanel extends JPanel {
         
         switch(keyCode) {
             case UP: repaint = handleRotation(); break;
-            case LEFT: repaint = figures.getFirst().shift(Figure.Shift.LEFT); break;
-            case RIGHT: repaint = figures.getFirst().shift(Figure.Shift.RIGHT); break;
+            case LEFT: repaint = figures.get(0).shift(Figure.Shift.LEFT); break;
+            case RIGHT: repaint = figures.get(0).shift(Figure.Shift.RIGHT); break;
             case SPACE: repaint = handleDrop(Shared.getMovingBlocks()); break;
         }
         
@@ -92,14 +94,14 @@ public class GamePanel extends JPanel {
     }
     
     private boolean handleRotation() {
-        if(!(figures.getFirst() instanceof SquareFigure)) {
-            return figures.getFirst().rotate();   
+        if(!(figures.get(0) instanceof SquareFigure)) {
+            return figures.get(0).rotate();
         }
         
         return false;
     }
     
-    private boolean handleDrop(List<Block> movingBlocks) {  
+    private boolean handleDrop(List<Block> movingBlocks) {
         List<Block> movedBlocks = new ArrayList<>();
         
         Figure movedFigure = new Figure(movedBlocks);
@@ -127,22 +129,22 @@ public class GamePanel extends JPanel {
     private void validateFullRows() {
         List<Integer> rowsToSlice = new ArrayList<>();
         
-        for(int i=0 ; i<20 ; i++) {
+        for(int i=0 ; i<Shared.Y_SIZE ; i++) {
             int ctr = 0;
             for(Block block : Shared.getFixBlocks()) {
-                if(block.getY()/40 == i) {
+                if(block.getY()/Shared.blockSize == i) {
                     ctr++;
                 }
             }
             
-            if(ctr == 10) {
+            if(ctr == Shared.X_SIZE) {
                 rowsToSlice.add(i);
             }
         }
         
         sliceDown(rowsToSlice);
         
-        statusPanel.getScorePanel().update(rowsToSlice.size());
+        statusPanel.getScorePanel().updateScore(rowsToSlice.size());
         if(rowsToSlice.size() > 0) {
             try {
                 AudioHelpers.playSound(getClass(), "slice_" + rowsToSlice.size() + ".wav", 1.0);
@@ -158,10 +160,10 @@ public class GamePanel extends JPanel {
         
         for(Integer rowToSlice : rowsToSlice) {
             for(Block block : fixBlocks) {
-                if(block.getY() / 40 == rowToSlice) {
+                if(block.getY() / Shared.blockSize == rowToSlice) {
                     blocksToSlice.add(block);
-                } else if(block.getY() / 40 < rowToSlice) {
-                    block.setY(block.getY() + 40);
+                } else if(block.getY() / Shared.blockSize < rowToSlice) {
+                    block.setY(block.getY() + Shared.blockSize);
                 }
             }
         }
@@ -180,14 +182,13 @@ public class GamePanel extends JPanel {
     private void init(MainFrame mainFrame, StatusPanel statusPanel) {
         this.mainFrame = mainFrame;
         this.statusPanel = statusPanel;
-        setPreferredSize(new Dimension(400, 800));
+        setPreferredSize(new Dimension(Shared.blockSize*Shared.X_SIZE, Shared.blockSize*Shared.Y_SIZE));
         this.renderThread = new RenderThread(this);
         this.figures.add(createRandomFigure());
         this.figures.add(createRandomFigure());
         
-        figures.getFirst().setActive();
-        statusPanel.getNextPanel().update(this.figures.getLast());
-        statusPanel.getNextPanel().repaint();
+        figures.get(0).setActive();
+        statusPanel.getNextPanelContainer().update(this.figures.getLast());
         statusPanel.getDifficultyPanel().enableDifficulty(false);
     }
 
@@ -204,12 +205,12 @@ public class GamePanel extends JPanel {
         if(Figure.isVerticalOutOfBounds(Shared.getMovingBlocks()) || Figure.collidesWithBlocks(Shared.getFixBlocks(), Shared.getMovingBlocks())) {
             Shared.addMovingToFix();
             validateFullRows();
-            
+                        
             figures.removeFirst();
             figures.add(createRandomFigure());
-            figures.getFirst().setActive();
-            
-            statusPanel.getNextPanel().update(figures.getLast());
+            figures.get(0).setActive();
+                        
+            statusPanel.getNextPanelContainer().update(figures.getLast());
             
             if(Figure.collidesWithBlocks(Shared.getFixBlocks(), Shared.getMovingBlocks())) {
                 Shared.setGameOver(true);
@@ -223,36 +224,23 @@ public class GamePanel extends JPanel {
         for(Block block : Shared.getMovingBlocks()) {
             g2d.setStroke(new BasicStroke(2));
             g2d.setColor(Color.BLACK);
-            g2d.drawRect(block.getX(), block.getY(), 40, 40);
+            g2d.drawRect(block.getX(), block.getY(), Shared.blockSize, Shared.blockSize);
             g2d.setStroke(oldStroke);
             
             g2d.setColor(block.getMovingColor());
-            g2d.fillRect(block.getX(), block.getY(), 40, 40);
+            g2d.fillRect(block.getX(), block.getY(), Shared.blockSize, Shared.blockSize);
         }
 
         for(Block block : Shared.getFixBlocks()) {
             g2d.setStroke(new BasicStroke(2));
             g2d.setColor(Color.BLACK);
-            g2d.drawRect(block.getX(), block.getY(), 40, 40);
+            g2d.drawRect(block.getX(), block.getY(), Shared.blockSize, Shared.blockSize);
             g2d.setStroke(oldStroke);
             
             g2d.setColor(block.getFixColor());
-            g2d.fillRect(block.getX(), block.getY(), 40, 40);
+            g2d.fillRect(block.getX(), block.getY(), Shared.blockSize, Shared.blockSize);
         }
 
-    }
-    
-    private Color getRandomColor() {
-        switch(ThreadLocalRandom.current().nextInt(0, 7)) {
-            case 0: return Color.RED;
-            case 1: return Color.GRAY;
-            case 2: return Color.BLUE;
-            case 3: return Color.YELLOW;
-            case 4: return Color.WHITE;
-            case 5: return Color.LIGHT_GRAY;
-            case 6: return Color.GREEN;
-            default: return Color.BLACK;
-        }
     }
 
     public void addToRemove(Point point) {
@@ -301,22 +289,19 @@ public class GamePanel extends JPanel {
             for(Block block : hintBlocks) {
                 g2d.setStroke(new BasicStroke(2));
                 g2d.setColor(new Color(1.0f, 1.0f, 1.0f, 0.1f));
-                g2d.drawRect(block.getX(), block.getY(), 40, 40);
+                g2d.drawRect(block.getX(), block.getY(), Shared.blockSize, Shared.blockSize);
                 g2d.setStroke(oldStroke);
 
                 g2d.setColor(new Color(0.0f, 1.0f, 0.0f, 0.1f));
-                g2d.fillRect(block.getX(), block.getY(), 40, 40);
+                g2d.fillRect(block.getX(), block.getY(), Shared.blockSize, Shared.blockSize);
             }
         }
     }
         
     private List<Block> fakeDrop(List<Block> movingBlocks) {  
         List<Block> movedBlocks = new ArrayList<>();
-        
-        Figure movedFigure = new Figure(movedBlocks);
-        
+                
         for(Block block : movingBlocks) {
-
             movedBlocks.add(new Block(block.getX(), block.getY() + 1, block.getR(), block.getG(), block.getB(), block.isCenter()));
         }
         
@@ -329,18 +314,16 @@ public class GamePanel extends JPanel {
             
             return toRender;
         } else {
-            this.figures.remove();
-            this.figures.addFirst(movedFigure);
             return fakeDrop(movedBlocks);
         }
     }
 
     private void drawBackgroundGrid(Graphics2D g2d, Stroke oldStroke) {
-        for(int y=0 ; y<20 ; y++) {
-            for(int x=0 ; x<10 ; x++) {
+        for(int y=0 ; y<Shared.Y_SIZE ; y++) {
+            for(int x=0 ; x<Shared.X_SIZE ; x++) {
                 g2d.setStroke(new BasicStroke(1));
                 g2d.setColor(Color.LIGHT_GRAY);
-                g2d.drawRect(x*40, y*40, 40, 40);
+                g2d.drawRect(x*Shared.blockSize, y*Shared.blockSize, Shared.blockSize, Shared.blockSize);
                 g2d.setStroke(oldStroke);
             }
         }
@@ -349,9 +332,25 @@ public class GamePanel extends JPanel {
     private void drawBackgroundImage(Graphics2D g2d) {
         try {
             g2d.setColor(new Color(225, 225, 225));
-            g2d.fillRect(0, 0, 10*40, 20*40);
+            g2d.fillRect(0, 0, Shared.X_SIZE*Shared.blockSize, Shared.Y_SIZE*Shared.blockSize);
+                        
             Image image = ImageIO.read(getClass().getResource("/resources/name.png"));
-            g2d.drawImage(image, 177, 10, null);
+            
+            int imgX = image.getWidth(null);
+            int imgY = image.getHeight(null);
+            
+            int totalWidth = Shared.X_SIZE * Shared.blockSize;
+            
+            double resizeFactor = ((double) totalWidth) / ((double) imgX);
+            
+            
+            imgX = (int) (imgX * resizeFactor);
+            imgY = (int) (imgY * resizeFactor);
+                        
+            int xLoc = Shared.blockSize * Shared.X_SIZE / 2 - (imgX / 2);
+            int yLoc = Shared.blockSize * 3;
+            
+            g2d.drawImage(image, xLoc, yLoc, imgX, imgY, null);
         } catch (Exception ex) {
             ex.printStackTrace();
         }
@@ -361,11 +360,11 @@ public class GamePanel extends JPanel {
         List<Point> toRemoveSync = getToRemove();
         for(Point point : toRemoveSync) {
             g2d.setColor(new Color(225, 225, 225));
-            g2d.fillRect(point.x* 40, point.y * 40, 40, 40);
+            g2d.fillRect(point.x* Shared.blockSize, point.y * Shared.blockSize, Shared.blockSize, Shared.blockSize);
             
             g2d.setStroke(new BasicStroke(1));
             g2d.setColor(Color.LIGHT_GRAY);
-            g2d.drawRect(point.x * 40, point.y * 40, 40, 40);
+            g2d.drawRect(point.x * Shared.blockSize, point.y * Shared.blockSize, Shared.blockSize, Shared.blockSize);
             g2d.setStroke(oldStroke);
         }
     }

@@ -35,7 +35,7 @@ public class Figure {
         
     public static boolean isVerticalOutOfBounds(List<Block> movingBlocks) {
         for(Block block : movingBlocks) {
-            if(block.getY() >= 19*40) {
+            if(block.getY() >= (Shared.Y_SIZE-1)*Shared.blockSize) {
                 return true;
             }
         }
@@ -45,7 +45,7 @@ public class Figure {
     
     public static boolean isHorizontalOutOfBounds(List<Block> movingBlocks) {
         for(Block block : movingBlocks) {
-            if(block.getX() < 0 || block.getX() > 9*40) {
+            if(block.getX() < 0 || block.getX() > (Shared.X_SIZE-1)*Shared.blockSize) {
                 return true;
             }
         }
@@ -56,9 +56,9 @@ public class Figure {
     public static boolean collidesWithBlocks(List<Block> fixBlocks, List<Block> movingBlocks) {
         for(Block block : fixBlocks) {
             for(Block movingBlock : movingBlocks) {
-                Rectangle fixRect = new Rectangle(block.getX(), block.getY(), 40, 40);
+                Rectangle fixRect = new Rectangle(block.getX(), block.getY(), Shared.blockSize, Shared.blockSize);
                 
-                if(fixRect.contains(new Point(movingBlock.getX(), movingBlock.getY()+40))) {
+                if(fixRect.contains(new Point(movingBlock.getX(), movingBlock.getY()+Shared.blockSize))) {
                     return true;
                 }
             }
@@ -74,9 +74,9 @@ public class Figure {
         for(Block block : movingBlocks) {
             int shiftedX = -1;
             if(shift == Shift.LEFT) {
-                shiftedX = block.getX() - 40;
+                shiftedX = block.getX() - Shared.blockSize;
             } else if(shift == Shift.RIGHT) {
-                shiftedX = block.getX() + 40;
+                shiftedX = block.getX() + Shared.blockSize;
             }
             
             shiftedBlocks.add(new Block(shiftedX, block.getY(), block.getR(), block.getG(), block.getB(), block.isCenter()));

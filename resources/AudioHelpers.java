@@ -10,7 +10,7 @@ import javax.sound.sampled.UnsupportedAudioFileException;
 
 public class AudioHelpers {
     
-    public static long playSound(Class clazz, String fileName, double gain) throws UnsupportedAudioFileException, IOException, LineUnavailableException {
+    public static long playSound(Class clazz, String fileName, double gain) throws UnsupportedAudioFileException, IOException, LineUnavailableException {        
         AudioInputStream audioIn = AudioSystem.getAudioInputStream(clazz.getClassLoader().getResource("resources/" + fileName));
         Clip clip = AudioSystem.getClip();
         clip.open(audioIn);

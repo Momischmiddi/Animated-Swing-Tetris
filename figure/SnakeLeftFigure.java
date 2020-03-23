@@ -1,6 +1,7 @@
 package figure;
 
 import java.util.Arrays;
+import threads.Shared;
 
 public class SnakeLeftFigure extends Figure {
         
@@ -11,10 +12,10 @@ public class SnakeLeftFigure extends Figure {
     public SnakeLeftFigure() {
         super(
             Arrays.asList(new Block[]{
-                new Block(120, 0, R, G, B, false),
-                new Block(160, 0, R, G, B, false),
-                new Block(160, 40, R, G, B, true),
-                new Block(200, 40, R, G, B, false)
+                new Block(Shared.blockSize*3, 0, R, G, B, false),
+                new Block(Shared.blockSize*4, 0, R, G, B, false),
+                new Block(Shared.blockSize*4, Shared.blockSize, R, G, B, true),
+                new Block(Shared.blockSize*5, Shared.blockSize, R, G, B, false)
             })
         );
     }

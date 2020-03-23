@@ -1,6 +1,7 @@
 package figure;
 
 import java.util.Arrays;
+import threads.Shared;
 
 public class TFigure extends Figure {
     
@@ -11,10 +12,10 @@ public class TFigure extends Figure {
     public TFigure() {
         super(
             Arrays.asList(new Block[]{
-                new Block(160, 0, R, G, B, false),
-                new Block(120, 40, R, G, B, true),
-                new Block(160, 40, R, G, B, false),
-                new Block(160, 80, R, G, B, false)
+                new Block(Shared.blockSize*4, 0, R, G, B, false),
+                new Block(Shared.blockSize*3, Shared.blockSize, R, G, B, true),
+                new Block(Shared.blockSize*4, Shared.blockSize, R, G, B, false),
+                new Block(Shared.blockSize*4, Shared.blockSize*2, R, G, B, false)
             })
         );
     }
