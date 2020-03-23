@@ -72,16 +72,7 @@ public class GamePanel extends JPanel {
         drawHint(g2d, oldStroke);
         
         if(Shared.isGameOver()) {
-            List<Point> toRemoveSync = getToRemove();
-            for(Point point : toRemoveSync) {
-                g2d.setColor(new Color(225, 225, 225));
-                g2d.fillRect(point.x* 40, point.y * 40, 40, 40);
-                
-                g2d.setStroke(new BasicStroke(1));
-                g2d.setColor(Color.LIGHT_GRAY);
-                g2d.drawRect(point.x * 40, point.y * 40, 40, 40);
-                g2d.setStroke(oldStroke);
-            }
+            drawGameOver(g2d, oldStroke);
         }
     }
 
@@ -363,6 +354,19 @@ public class GamePanel extends JPanel {
             g2d.drawImage(image, 177, 10, null);
         } catch (Exception ex) {
             ex.printStackTrace();
+        }
+    }
+
+    private void drawGameOver(Graphics2D g2d, Stroke oldStroke) {
+        List<Point> toRemoveSync = getToRemove();
+        for(Point point : toRemoveSync) {
+            g2d.setColor(new Color(225, 225, 225));
+            g2d.fillRect(point.x* 40, point.y * 40, 40, 40);
+            
+            g2d.setStroke(new BasicStroke(1));
+            g2d.setColor(Color.LIGHT_GRAY);
+            g2d.drawRect(point.x * 40, point.y * 40, 40, 40);
+            g2d.setStroke(oldStroke);
         }
     }
 }
