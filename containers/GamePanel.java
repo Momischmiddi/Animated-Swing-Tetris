@@ -35,6 +35,7 @@ public class GamePanel extends JPanel {
     private final int LEFT = 37;
     private final int UP = 38;
     private final int RIGHT = 39;
+    private final int DOWN = 40;
     private final int SPACE = 32;
     
     private MainFrame mainFrame;
@@ -95,6 +96,7 @@ public class GamePanel extends JPanel {
 
             switch(keyCode) {
                 case UP: repaint = handleRotation(); break;
+                case DOWN: repaint = handleMoveDown(); break;
                 case LEFT: repaint = figures.get(0).shift(Figure.Shift.LEFT); break;
                 case RIGHT: repaint = figures.get(0).shift(Figure.Shift.RIGHT); break;
                 case SPACE: repaint = handleDrop(Shared.getMovingBlocks()); break;
@@ -210,34 +212,36 @@ public class GamePanel extends JPanel {
     }
 
     public void moveDown() {
-        List<Block> movingBlocks = Shared.getMovingBlocks();
-        
-        for(Block block : movingBlocks) {
-            int movedY = block.getY() + 1;
-            block.setY(movedY);
-        }
-        
-        Shared.setMovingBlocks(movingBlocks);
+        synchronized(downLock) {
+            List<Block> movingBlocks = Shared.getMovingBlocks();
 
-        if(Figure.isVerticalOutOfBounds(Shared.getMovingBlocks()) || Figure.collidesWithBlocks(Shared.getFixBlocks(), Shared.getMovingBlocks())) {
-            Shared.addMovingToFix();
-            validateFullRows();
-                        
-            figures.removeFirst();
-            figures.add(createRandomFigure());
-            figures.get(0).setActive();
-                        
-            statusPanel.getNextPanelContainer().update(figures.getLast());
-            
-            if(Figure.collidesWithBlocks(Shared.getFixBlocks(), Shared.getMovingBlocks())) {
-                Shared.setGameOver(true);
-                statusPanel.getScorePanel().reset();
-                statusPanel.getDifficultyPanel().reset();
-                renderThread.interrupt();
+            for(Block block : movingBlocks) {
+                int movedY = block.getY() + 1;
+                block.setY(movedY);
             }
+
+            Shared.setMovingBlocks(movingBlocks);
+
+            if(Figure.isVerticalOutOfBounds(Shared.getMovingBlocks()) || Figure.collidesWithBlocks(Shared.getFixBlocks(), Shared.getMovingBlocks())) {
+                Shared.addMovingToFix();
+                validateFullRows();
+
+                figures.removeFirst();
+                figures.add(createRandomFigure());
+                figures.get(0).setActive();
+
+                statusPanel.getNextPanelContainer().update(figures.getLast());
+
+                if(Figure.collidesWithBlocks(Shared.getFixBlocks(), Shared.getMovingBlocks())) {
+                    Shared.setGameOver(true);
+                    statusPanel.getScorePanel().reset();
+                    statusPanel.getDifficultyPanel().reset();
+                    renderThread.interrupt();
+                }
+            }
+
+            this.repaint();
         }
-        
-        this.repaint();
     }
     
     private void drawGame(Graphics2D g2d, Stroke oldStroke) {
@@ -439,5 +443,27 @@ public class GamePanel extends JPanel {
 
     public StatusPanel getStatusPanel() {
         return statusPanel;
+    }
+
+    private Object downLock = new Object();
+    
+    private boolean handleMoveDown() {
+        boolean result = false;
+        
+        synchronized(downLock) {
+            List<Block> movingBlocks = Shared.getMovingBlocks();
+
+            for(Block block : movingBlocks) {
+                int movedY = block.getY() + 15;
+                block.setY(movedY);
+            }
+
+            if(!Figure.isVerticalOutOfBounds(movingBlocks) && !Figure.collidesWithBlocks(Shared.getFixBlocks(), movingBlocks)) {
+                Shared.setMovingBlocks(movingBlocks);
+                result = true;
+            }
+        }
+        
+        return result;
     }
 }
