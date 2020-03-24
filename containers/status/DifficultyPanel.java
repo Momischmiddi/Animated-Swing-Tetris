@@ -62,7 +62,7 @@ public class DifficultyPanel extends JPanel {
         
         levelValueLabel.setText(String.valueOf(level));
         
-        return level == 6;
+        return level == 34;
    }    
 
     public void reset() {

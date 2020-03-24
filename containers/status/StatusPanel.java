@@ -33,7 +33,7 @@ public class StatusPanel extends JPanel {
         this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
         
         this.nextPanelContainer = new NextPanelContainer();
-        this.scorePanel = new ScorePanel();
+        this.scorePanel = new ScorePanel(this);
         this.difficultyPanel = new DifficultyPanel(mainFrame);
     }
     

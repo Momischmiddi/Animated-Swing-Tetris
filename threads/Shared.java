@@ -19,13 +19,14 @@ public class Shared {
     
     private static final Object figureLock = new Object();
     
-    private static int speed = 2;
+    private static int speed = 1;
     public static final int STATUS_X_SIZE = 15;
     public static final int X_SIZE = 10;
     public static final int Y_SIZE = 20;
     public static int blockSize;
     
     public static final Font statusFont = new Font("Comic Sans MS", Font.BOLD, 16);
+    public static boolean gameWon = false;
     
     public static void reset() {
         fixBlocks.clear();

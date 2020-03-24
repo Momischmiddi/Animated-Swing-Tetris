@@ -3,6 +3,7 @@ package animatedtetris;
 import containers.MainFrame;
 import java.awt.AWTException;
 import java.io.IOException;
+import threads.Shared;
 
 public class AnimatedTetris {
 

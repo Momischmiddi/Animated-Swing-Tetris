@@ -1,6 +1,5 @@
 package containers;
 
-import threads.TimeThread;
 import containers.status.StatusPanel;
 import containers.status.DifficultyPanel;
 import threads.RenderThread;
@@ -21,7 +20,6 @@ import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Point;
 import java.awt.Stroke;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -29,6 +27,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import javax.imageio.ImageIO;
 import javax.swing.JPanel;
 import resources.AudioHelpers;
+import threads.BackgroundAudioThread;
 import threads.EndingThread;
 
 public class GamePanel extends JPanel {
@@ -41,15 +40,15 @@ public class GamePanel extends JPanel {
     private MainFrame mainFrame;
     private StatusPanel statusPanel;
     
-    private RenderThread renderThread;
-    private TimeThread timeThread;
-    
+    private RenderThread renderThread = null;
     private EndingThread endingThread = null;
+    private WinThread winThread = null;
     
     private LinkedList<Figure> figures = new LinkedList<>();
     
     private final Object toRemoveLock = new Object();
     private List<Point> toRemove = new ArrayList<>();
+    private List<Point> snakeToRemove = new ArrayList<>();
 
     public GamePanel(MainFrame mainFrame, StatusPanel statusPanel) {
         init(mainFrame, statusPanel);
@@ -62,36 +61,48 @@ public class GamePanel extends JPanel {
         Graphics2D g2d = (Graphics2D) grahpics;
         Stroke oldStroke = g2d.getStroke();
         
-        drawBackgroundImage(g2d);
-        drawBackgroundGrid(g2d, oldStroke);
-        
-        if(Shared.isGameOver()) {
-            if(endingThread == null) {
-                endingThread = new EndingThread(this);
-                repaint();
-            }
+        if(snakeToRemove.size() == 200) {
+            drawBackgroundGrid(g2d, oldStroke);
+            return;
         }
         
-        drawGame(g2d, oldStroke);
-        drawHint(g2d, oldStroke);
-        
-        if(Shared.isGameOver()) {
-            drawGameOver(g2d, oldStroke);
+        if(Shared.gameWon && this.winThread != null) {
+            drawBackgroundGrid(g2d, oldStroke);
+            drawSnake(g2d, oldStroke);
+        } else {
+            drawBackgroundImage(g2d);
+            drawBackgroundGrid(g2d, oldStroke);
+
+            if(Shared.isGameOver() || Shared.gameWon) {
+                if(endingThread == null) {
+                    endingThread = new EndingThread(this);
+                    repaint();
+                }
+            }
+
+            drawGame(g2d, oldStroke);
+            drawHint(g2d, oldStroke);
+
+            if(Shared.isGameOver() || Shared.gameWon) {
+                drawGameOver(g2d, oldStroke);
+            }
         }
     }
 
     public void handleKeyPressed(int keyCode) {
-        boolean repaint = false;
-        
-        switch(keyCode) {
-            case UP: repaint = handleRotation(); break;
-            case LEFT: repaint = figures.get(0).shift(Figure.Shift.LEFT); break;
-            case RIGHT: repaint = figures.get(0).shift(Figure.Shift.RIGHT); break;
-            case SPACE: repaint = handleDrop(Shared.getMovingBlocks()); break;
-        }
-        
-        if(repaint) {
-            repaint();
+        if(!Shared.isGameOver() && !Shared.gameWon) {
+            boolean repaint = false;
+
+            switch(keyCode) {
+                case UP: repaint = handleRotation(); break;
+                case LEFT: repaint = figures.get(0).shift(Figure.Shift.LEFT); break;
+                case RIGHT: repaint = figures.get(0).shift(Figure.Shift.RIGHT); break;
+                case SPACE: repaint = handleDrop(Shared.getMovingBlocks()); break;
+            }
+
+            if(repaint) {
+                repaint();
+            }
         }
     }
     
@@ -176,8 +187,12 @@ public class GamePanel extends JPanel {
 
     public void restart() {
         endingThread = null;
+        winThread = null;
+        Shared.setGameOver(false);
+        Shared.gameWon = false;
         figures.clear();
         toRemove.clear();
+        snakeToRemove.clear();
         init(mainFrame, statusPanel);
     }
     
@@ -186,7 +201,6 @@ public class GamePanel extends JPanel {
         this.statusPanel = statusPanel;
         setPreferredSize(new Dimension(Shared.blockSize*Shared.X_SIZE, Shared.blockSize*Shared.Y_SIZE));
         this.renderThread = new RenderThread(this);
-        this.timeThread = new TimeThread(this);
         this.figures.add(createRandomFigure());
         this.figures.add(createRandomFigure());
         
@@ -219,7 +233,6 @@ public class GamePanel extends JPanel {
                 Shared.setGameOver(true);
                 statusPanel.getScorePanel().reset();
                 statusPanel.getDifficultyPanel().reset();
-                timeThread.interrupt();
                 renderThread.interrupt();
             }
         }
@@ -250,12 +263,30 @@ public class GamePanel extends JPanel {
 
     }
 
+    public void addSnakeToRemove(Point point) {
+        synchronized(toRemoveLock) {
+            snakeToRemove.add(point);
+        }
+    }
+    
     public void addToRemove(Point point) {
         synchronized(toRemoveLock) {
             toRemove.add(point);
         }
     }
 
+    private List<Point> getToSnakeRemove() {
+        List<Point> result = new ArrayList<>();
+        
+        synchronized(toRemoveLock) {
+            for(Point point : snakeToRemove) {
+                result.add(new Point(point.x, point.y));
+            }
+        }
+        
+        return result;
+    }
+    
     private List<Point> getToRemove() {
         List<Point> result = new ArrayList<>();
         
@@ -374,5 +405,39 @@ public class GamePanel extends JPanel {
             g2d.drawRect(point.x * Shared.blockSize, point.y * Shared.blockSize, Shared.blockSize, Shared.blockSize);
             g2d.setStroke(oldStroke);
         }
+        
+        if(toRemoveSync.size() == 200 && Shared.gameWon) {
+            winThread = new WinThread(this);
+        }
+    }
+
+    public BackgroundAudioThread getBackgroundAudioThread() {
+        return mainFrame.getBackgroundAudioThread();
+    }
+
+    public void showWinningScreen() {
+        System.out.println("Showing Winning");
+    }
+
+    private void drawSnake(Graphics2D g2d, Stroke oldStroke) {
+        List<Point> snakeToRemove = getToSnakeRemove();
+        
+        for(Point point : snakeToRemove) {
+            g2d.setColor(new Color(225, 225, 225));
+            g2d.fillRect(point.x* Shared.blockSize, point.y * Shared.blockSize, Shared.blockSize, Shared.blockSize);
+            
+            g2d.setStroke(new BasicStroke(1));
+            g2d.setColor(Color.GREEN);
+            g2d.drawRect(point.x * Shared.blockSize, point.y * Shared.blockSize, Shared.blockSize, Shared.blockSize);
+            g2d.setStroke(oldStroke);
+        }
+    }
+
+    public MainFrame getMainFrame() {
+        return mainFrame;
+    }
+
+    public StatusPanel getStatusPanel() {
+        return statusPanel;
     }
 }

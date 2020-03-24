@@ -1,5 +1,6 @@
 package threads;
 
+import javax.sound.sampled.Clip;
 import resources.AudioHelpers;
 
 public class BackgroundAudioThread extends Thread {
@@ -10,12 +11,22 @@ public class BackgroundAudioThread extends Thread {
     
     @Override
     public void run() {
-        while(true) {
+        System.out.println("Audio-Thread started.");
+        
+        while(!Shared.gameWon) {
+            Clip clip = null;
             try {
-                Thread.sleep(AudioHelpers.playSound(getClass(), "backgroundsound.wav", 0.3) / 1000);
+                clip = AudioHelpers.playSound(getClass(), "backgroundsound.wav", 0.3);
+                Thread.sleep(clip.getMicrosecondLength() / 1000);
             } catch(Exception e){
-                e.printStackTrace();
+                if(!Shared.gameWon) {
+                    e.printStackTrace();
+                } else {
+                    clip.stop();
+                }
             }
         }
+        
+        System.out.println("Audio-Thread terminated.");
     }
 }

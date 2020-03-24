@@ -68,4 +68,12 @@ public class MainFrame extends JFrame {
         // The game should use the half screen height
         return screenSize.height / Shared.Y_SIZE / 2;
     }
+
+    public BackgroundAudioThread getBackgroundAudioThread() {
+        return backgroundAudioThread;
+    }
+
+    public void restartBackgroundThread() {
+        backgroundAudioThread = new BackgroundAudioThread();
+    }
 }

@@ -31,7 +31,7 @@ public class EndingThread extends Thread {
             }    
         }
         
-        gamePanel.getDifficultyPanel().enableDifficulty(true);
+        gamePanel.getDifficultyPanel().enableDifficulty(!Shared.gameWon);
         
         System.out.println("Endingpaint-Thread terminating.");
     }
